@@ -91,6 +91,35 @@ function Register(props) {
     timeout();
   });
 
+  // useEffect(() => {
+  //   if (status !== '') submitHandler();
+  // }, [status]);
+
+  const submitHandler2 = (values, calback) => {
+    values.addressLine1 = postdata.addressline1;
+    values.addressLine2 = postdata.addressline2;
+    values.cityTown = postdata.posttown;
+
+    dispatch(RegisterData(values));
+
+    console.log('inside Verification', values, status);
+    return calback();
+  };
+
+  const submitHandler = () => {
+    console.log('inside submitHAndler', status);
+    if (status === 'created successfully') {
+      setSuccessAlert(true);
+      //POP-UP with message
+      props.navigation.navigate('Login');
+      //Navigate to Login Screen
+    } else {
+      setFailureAlert(true);
+      //POP-UP with error message
+      //navigate to register
+    }
+  };
+
   return (
     <CustomLayout
       header
@@ -120,24 +149,11 @@ function Register(props) {
         onSubmit={async values => {
           if (values.mobileNoOTP.length === 0) {
             const otp = await fetchMobileOTP(values.contactNumber);
-
+            console.log('otp is :-- ', otp);
             timeout();
             refRBSheet.current.open();
           } else if (postsize !== 0) {
-            values.addressLine1 = postdata.addressline1;
-            values.addressLine2 = postdata.addressline2;
-            values.cityTown = postdata.posttown;
-
-            dispatch(RegisterData(values));
-            if (status === 'created successfully') {
-              setSuccessAlert(true);
-              //POP-UP with message
-              //Navigate to Login Screen
-            } else {
-              setFailureAlert(true);
-              //POP-UP with error message
-              //navigate to register
-            }
+            submitHandler2(values, submitHandler);
           }
         }}
         validationSchema={validationSchema}>
@@ -243,7 +259,7 @@ function Register(props) {
                     <EvilIcons name="search" size={30} color={'#ff7e00'} />
                   )}
                   onPress={() => {
-                    if (values.postCode.length <= 6) {
+                    if (values.postCode.length < 6) {
                       alert('Please Enter a Valid PostCode');
                     } else {
                       const data = {};

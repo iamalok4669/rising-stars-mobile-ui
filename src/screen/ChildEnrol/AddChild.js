@@ -48,7 +48,7 @@ const AddChild = props => {
     setUser(userId);
   };
 
-  const genders = ['MALE', 'FEMALE', 'OTHERS'];
+  const genders = ['BOY', 'GIRL', 'OTHERS'];
   const relations = [
     'FRIEND',
     'GRAND_PARENT',
@@ -84,7 +84,7 @@ const AddChild = props => {
 
   // const [relationData, setRelationData] = useState('');
 
-  const [gender, setGender] = useState('MALE');
+  const [gender, setGender] = useState('BOY');
   const [relation, setRelation] = useState('PARENT');
 
   const [gendererror, setGenderError] = useState(false);
@@ -233,7 +233,12 @@ const AddChild = props => {
               <PopUpCard
                 text={'Date of Birth'}
                 textColor={colors.grey}
-                value={moment(values.dob).format('DD-MM-YYYY')}
+                value={
+                  moment(values.dob).format('DD-MM-YYYY') ===
+                  moment(new Date()).format('DD-MM-YYYY')
+                    ? 'Date of Birth'
+                    : moment(values.dob).format('DD-MM-YYYY')
+                }
                 onPress={() => setBirthModal(!birthModal)}
                 onBlur={() => setBirthError(true)}
               />
@@ -327,7 +332,7 @@ const AddChild = props => {
                   <TouchableOpacity
                     onPress={() => {
                       genderef.current.close();
-                      setGender('MALE');
+                      setGender('BOY');
                     }}>
                     <Text
                       style={{

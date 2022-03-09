@@ -54,7 +54,11 @@ export function fetchRegister(payload) {
       country: 'country',
     }),
   })
-    .then(response => response.json())
+    .then(response => {
+      let d = response.json();
+      console.log('inside register', d);
+      return d;
+    })
     .catch(error => {
       throw error;
     });

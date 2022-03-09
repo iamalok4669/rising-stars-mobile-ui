@@ -27,10 +27,12 @@ import {
 import {WheelPicker} from 'react-native-wheel-picker-android';
 import {getmemberClass, getmemberData} from '../../redux/action/home';
 import {fetchAttendanceOfMemberInSession} from '../../redux/service/request';
+import Entypo from 'react-native-vector-icons/Entypo';
+import {useNavigation} from '@react-navigation/native';
 
 const Home = () => {
   const dispatch = useDispatch();
-
+  const navigation = useNavigation();
   const [user, setUser] = useState('');
   const [currentMemberIndex, setCurrentMemberIndex] = useState(0);
   const [memberModal, setMemberModal] = useState(false);
@@ -123,6 +125,7 @@ const Home = () => {
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentMember]);
+
   useEffect(() => {
     memberClassData.length > 1 &&
       setCurrentSessionId(
@@ -169,124 +172,146 @@ const Home = () => {
   return (
     <ScrollView style={{backgroundColor: colors.white}}>
       <StatusBar backgroundColor="rgb(255,163,0)" />
-      <View style={styles.container}>
-        <LinearGradient
-          colors={[colors.orangeYellow, colors.pumpkinOrange]}
-          style={styles.linearGradient}>
-          <Text style={styles.welcome}>{`Hi ${user.name}, your child`}</Text>
-          <View style={styles.containerMember}>
-            <View style={{marginTop: hp('1%')}}>
-              <Image
-                style={{
-                  height: 57,
-                  width: 57,
-                  borderRadius: 20,
-                  borderWidth: 2,
-                  borderColor: 'white',
-                }}
-                source={Images.Child}
-              />
-            </View>
-            <View style={{marginLeft: 10, justifyContent: 'center'}}>
-              <Text style={styles.memberName}>{currentMember?.name}</Text>
-            </View>
-            <View style={{flex: 1}} />
-            {membersdata && membersdata.length > 1 ? (
-              <TouchableOpacity onPress={() => setMemberModal(!memberModal)}>
-                <LinearGradient
-                  colors={['#fcb12b', '#e6780e']}
-                  style={{
-                    marginRight: 20,
-                    height: 32,
-                    width: 32,
-                    borderRadius: 8,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}>
-                  <Image
-                    style={{height: 14, width: 18}}
-                    source={Images.dropDown_white}
-                  />
-                </LinearGradient>
-              </TouchableOpacity>
-            ) : null}
-          </View>
-          <WheelDropdown
-            title="child"
-            visible={memberModal}
-            setVisibility={modal => setMemberModal(modal)}
-            cancel={() => setMemberModal(false)}
-            confirm={() => {
-              setCurrentMemberIndex(wheelitem);
-              setCurrentMember(membersdata[wheelitem]);
 
-              dispatch({
-                type: Action.USER_GET_CURRENT_MEMBER_DATA,
-                payload: currentMember,
-              });
-              dispatch(getmemberClass(membersdata[wheelitem]._id));
-              setMemberModal(false);
-            }}>
+      <View style={styles.container}>
+        {currentMember ? (
+          <LinearGradient
+            colors={[colors.orangeYellow, colors.pumpkinOrange]}
+            style={styles.linearGradient}>
+            <Text style={styles.welcome}>{`Hi ${user.name}`}</Text>
+            <View style={styles.containerMember}>
+              <View style={{marginTop: hp('1%')}}>
+                <Image
+                  style={{
+                    height: 57,
+                    width: 57,
+                    borderRadius: 20,
+                    borderWidth: 2,
+                    borderColor: 'white',
+                  }}
+                  source={Images.Child}
+                />
+              </View>
+              <View style={{marginLeft: 10, justifyContent: 'center'}}>
+                <Text style={styles.memberName}>{currentMember?.name}</Text>
+              </View>
+              <View style={{flex: 1}} />
+              {membersdata && membersdata.length > 1 ? (
+                <TouchableOpacity onPress={() => setMemberModal(!memberModal)}>
+                  <LinearGradient
+                    colors={['#fcb12b', '#e6780e']}
+                    style={{
+                      marginRight: 20,
+                      height: 32,
+                      width: 32,
+                      borderRadius: 8,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}>
+                    <Image
+                      style={{height: 14, width: 18}}
+                      source={Images.dropDown_white}
+                    />
+                  </LinearGradient>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+
+            <WheelDropdown
+              title="child"
+              visible={memberModal}
+              setVisibility={modal => setMemberModal(modal)}
+              cancel={() => setMemberModal(false)}
+              confirm={() => {
+                setCurrentMemberIndex(wheelitem);
+                setCurrentMember(membersdata[wheelitem]);
+
+                dispatch({
+                  type: Action.USER_GET_CURRENT_MEMBER_DATA,
+                  payload: currentMember,
+                });
+                dispatch(getmemberClass(membersdata[wheelitem]._id));
+                setMemberModal(false);
+              }}>
+              <View
+                style={{
+                  alignContent: 'center',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginRight: wp('8%'),
+                  marginBottom: -hp('3%'),
+                }}>
+                <WheelPicker
+                  data={members}
+                  isCyclic={true}
+                  onItemSelected={wheelselected}
+                  selectedItemTextColor={'black'}
+                  selectedItemTextSize={Fontsize}
+                  itemTextFontFamily="Nunito-Regular"
+                  selectedItemTextFontFamily="Nunito-Regular"
+                />
+              </View>
+            </WheelDropdown>
+            <View style={styles.courosoul} />
+            <Carousel
+              data={
+                memberClassData &&
+                memberClassData?.filter(
+                  item => item?.enrolledStatus === 'ENROLLED',
+                )
+              }
+              renderItem={renderItem}
+              sliderWidth={wp('95%')}
+              itemWidth={wp('90%')}
+              onSnapToItem={async index => {
+                setActiveDotIndex(index);
+                setCurrentSessionId(
+                  memberClassData &&
+                    memberClassData?.filter(
+                      item => item?.enrolledStatus === 'ENROLLED',
+                    )[index].session._id,
+                );
+                const attendance =
+                  currentSessionId &&
+                  (await fetchAttendanceOfMemberInSession({
+                    token,
+                    data: {
+                      sessionId: currentSessionId,
+                      memberId: currentMember._id,
+                    },
+                  }));
+                setCurrentSessionAttendance(attendance.attendance);
+              }}
+            />
             <View
               style={{
-                alignContent: 'center',
-                justifyContent: 'center',
+                paddingVertical: hp('0.8%'),
+                width: wp('90%'),
                 alignItems: 'center',
-                marginRight: wp('8%'),
-                marginBottom: -hp('3%'),
               }}>
-              <WheelPicker
-                data={members}
-                isCyclic={true}
-                onItemSelected={wheelselected}
-                selectedItemTextColor={'black'}
-                selectedItemTextSize={Fontsize}
-                itemTextFontFamily="Nunito-Regular"
-                selectedItemTextFontFamily="Nunito-Regular"
-              />
+              {pagination()}
             </View>
-          </WheelDropdown>
-          <View style={styles.courosoul} />
-          <Carousel
-            data={
-              memberClassData &&
-              memberClassData?.filter(
-                item => item?.enrolledStatus === 'ENROLLED',
-              )
-            }
-            renderItem={renderItem}
-            sliderWidth={wp('95%')}
-            itemWidth={wp('90%')}
-            onSnapToItem={async index => {
-              setActiveDotIndex(index);
-              setCurrentSessionId(
-                memberClassData &&
-                  memberClassData?.filter(
-                    item => item?.enrolledStatus === 'ENROLLED',
-                  )[index].session._id,
-              );
-              const attendance =
-                currentSessionId &&
-                (await fetchAttendanceOfMemberInSession({
-                  token,
-                  data: {
-                    sessionId: currentSessionId,
-                    memberId: currentMember._id,
-                  },
-                }));
-              setCurrentSessionAttendance(attendance.attendance);
-            }}
-          />
-          <View
-            style={{
-              paddingVertical: hp('0.8%'),
-              width: wp('90%'),
-              alignItems: 'center',
-            }}>
-            {pagination()}
+          </LinearGradient>
+        ) : (
+          <View style={styles.addChildContainer}>
+            <Text>{`Hi ${user.name}`}</Text>
+            <TouchableOpacity
+              style={styles.addChild}
+              onPress={() => navigation.navigate('Addchildren')}>
+              <Entypo
+                name="plus"
+                size={15}
+                color="white"
+                style={{alignSelf: 'center'}}
+              />
+              <Text style={styles.addChildText}>Add Child</Text>
+            </TouchableOpacity>
           </View>
-        </LinearGradient>
+        )}
       </View>
+
+      {/* ///////////////////////////////////////Class OverView////////// */}
+
       <View style={styles.attendance}>
         <View>
           <Image source={Images.calendarOrange} />
@@ -297,6 +322,7 @@ const Home = () => {
           </Text>
         </View>
       </View>
+
       <View style={styles.reports}>
         <View
           style={{
@@ -358,6 +384,8 @@ const Home = () => {
           />
         </View>
       </View>
+
+      {/* ////////////////////////////////////////////Class Progress////// */}
       <View style={styles.activityProgress}>
         <View style={styles.activityProgressTitle}>
           <Image source={Images.medal} />
@@ -422,6 +450,29 @@ const styles = StyleSheet.create({
   },
   courosoul: {
     marginTop: hp('1%'),
+  },
+  addChildContainer: {
+    paddingTop: hp('2%'),
+    padding: wp('4%'),
+    paddingBottom: hp('3%'),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  addChild: {
+    height: hp('7%'),
+    width: '33%',
+    borderRadius: wp('4%'),
+    backgroundColor: colors.orange,
+    justifyContent: 'center',
+    flexDirection: 'row',
+    paddingHorizontal: wp('5%'),
+  },
+  addChildText: {
+    alignSelf: 'center',
+    color: colors.white,
+    fontFamily: 'Nunito-SemiBold',
+    justifyContent: 'center',
   },
 
   reports: {

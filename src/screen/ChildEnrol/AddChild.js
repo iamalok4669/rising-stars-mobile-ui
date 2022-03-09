@@ -32,7 +32,8 @@ import {WheelPicker} from 'react-native-wheel-picker-android';
 //   {id: 1, relation: 'Parents'},
 //   {id: 2, relation: 'Guardian'},
 //   {id: 3, relation: 'Uncle'},
-//   {id: 4, relation: 'Others'},
+//   {id: 4, relation: 'aunt'},
+//   {id: 5, relation: 'Others'},
 // ];
 const AddChild = props => {
   const genderef = useRef();
